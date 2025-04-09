@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Bluetooth Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .clay-container {
+            background: #e0e5ec;
+            border-radius: 30px;
+            box-shadow: 15px 15px 30px #b8b9be, -15px -15px 30px #ffffff;
+            padding: 30px;
+        }
+        
+        .clay-button {
+            background: #e0e5ec;
+            border-radius: 20px;
+            box-shadow: 8px 8px 16px #b8b9be, -8px -8px 16px #ffffff;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .clay-button:active {
+            box-shadow: inset 4px 4px 8px #b8b9be, inset -4px -4px 8px #ffffff;
+            transform: translateY(2px);
+        }
+        
+        .clay-card {
+            background: #e0e5ec;
+            border-radius: 25px;
+            box-shadow: 10px 10px 20px #b8b9be, -10px -10px 20px #ffffff;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .active-button {
+            background: linear-gradient(145deg, #4CAF50, #388E3C);
+            color: white;
+            box-shadow: inset 4px 4px 8px rgba(56, 142, 60, 0.5), inset -4px -4px 8px rgba(92, 184, 96, 0.5);
+        }
+        
+        .fan-icon-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 50%;
+            background: #e0e5ec;
+            box-shadow: inset 5px 5px 10px #b8b9be, inset -5px -5px 10px #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .fan-icon {
+            font-size: 60px;
+            color: #4a5568;
+        }
+        
+        .bulb-icon-container {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+            position: relative;
+            border-radius: 50%;
+            background: #e0e5ec;
+            box-shadow: inset 5px 5px 10px #b8b9be, inset -5px -5px 10px #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .bulb-icon {
+            font-size: 60px;
+            color: #4a5568;
+        }
+        
+        .clay-button-ripple {
+            position: absolute;
+            border-radius: 50%;
+            transform: scale(0);
+            background-color: rgba(255, 255, 255, 0.7);
+            animation: ripple 0.6s linear;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+        
+        .fan-rotating {
+            animation: rotate 1s linear infinite;
+        }
+        
+        .fan-speed-1 {
+            animation-duration: 1.5s;
+        }
+        
+        .fan-speed-2 {
+            animation-duration: 1s;
+        }
+        
+        .fan-speed-3 {
+            animation-duration: 0.7s;
+        }
+        
+        .fan-speed-F {
+            animation-duration: 0.4s;
+        }
+        
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .bulb-on {
+            color: #f6e05e !important;
+            text-shadow: 0 0 15px #f6e05e;
+        }
+        
+        .connection-status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+            background-color: #EF4444;
+        }
+        
+        .status-dot.connected {
+            background-color: #10B981;
+        }
+    </style>
+</head>
+<body class="bg-[#e0e5ec] min-h-screen p-4">
+    <div class="max-w-md mx-auto space-y-6 relative pt-4">
+        <div class="connection-status">
+            <span class="status-dot" id="connectionDot"></span>
+            <span id="connectionStatus">Disconnected</span>
+        </div>
+
+        <!-- Screens Container -->
+        <div id="screens">
+            <!-- Home Screen -->
+            <div id="homeScreen" class="clay-container">
+                <h1 class="text-3xl font-bold text-gray-800 text-center mb-8">Smart Home</h1>
+                
+                <div class="grid grid-cols-1 gap-6 mb-8">
+                    <button onclick="showScreen('fanScreen')" class="clay-button p-6 flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02]">
+                        <div class="fan-icon-container">
+                            <i class="bi bi-fan fan-icon"></i>
+                        </div>
+                        <span class="text-xl font-semibold text-gray-700">Fan Control</span>
+                    </button>
+                    
+                    <button onclick="showScreen('bulbScreen')" class="clay-button p-6 flex flex-col items-center justify-center space-y-4 transition-all hover:scale-[1.02]">
+                        <div class="bulb-icon-container">
+                            <i class="bi bi-lightbulb bulb-icon"></i>
+                        </div>
+                        <span class="text-xl font-semibold text-gray-700">Bulb Control</span>
+                    </button>
+                </div>
+                
+                <button onclick="toggleConnection()" id="connectBtn" class="clay-button w-full p-4 flex items-center justify-center space-x-3 font-medium text-blue-600">
+                    <i class="bi bi-bluetooth text-xl"></i>
+                    <span>Connect Bluetooth Device</span>
+                </button>
+            </div>
+
+            <!-- Fan Screen -->
+            <div id="fanScreen" class="clay-container hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="showScreen('homeScreen')" class="clay-button p-3 w-12 h-12 flex items-center justify-center">
+                        <i class="bi bi-arrow-left text-xl"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800">Fan Control</h2>
+                    <div class="w-12"></div>
+                </div>
+
+                <div class="fan-icon-container mb-8">
+                    <i class="bi bi-fan fan-icon" id="fanIcon"></i>
+                </div>
+                
+                <div class="space-y-4 mb-6">
+                    <h3 class="text-lg font-medium text-gray-700 mb-2">Fan Speed</h3>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button onclick="controlFan('1')" class="clay-button py-3 px-4 text-center font-medium" id="fanBtn1">25%</button>
+                        <button onclick="controlFan('2')" class="clay-button py-3 px-4 text-center font-medium" id="fanBtn2">50%</button>
+                        <button onclick="controlFan('3')" class="clay-button py-3 px-4 text-center font-medium" id="fanBtn3">75%</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="controlFan('F')" class="clay-button py-4 px-6 text-center font-medium" id="fanBtnF">
+                        <i class="bi bi-lightning-charge text-lg mr-2"></i>Max Speed
+                    </button>
+                    <button onclick="controlFan('f')" class="clay-button py-4 px-6 text-center font-medium" id="fanBtnf">
+                        <i class="bi bi-power text-lg mr-2"></i>Turn Off
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bulb Screen -->
+            <div id="bulbScreen" class="clay-container hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <button onclick="showScreen('homeScreen')" class="clay-button p-3 w-12 h-12 flex items-center justify-center">
+                        <i class="bi bi-arrow-left text-xl"></i>
+                    </button>
+                    <h2 class="text-2xl font-bold text-gray-800">Bulb Control</h2>
+                    <div class="w-12"></div>
+                </div>
+
+                <div class="bulb-icon-container mb-8">
+                    <i class="bi bi-lightbulb bulb-icon" id="bulbIcon"></i>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="controlBulb('B')" class="clay-button py-4 px-6 text-center font-medium" id="bulbBtnB">
+                        <i class="bi bi-lightbulb-fill text-lg mr-2"></i>Turn On
+                    </button>
+                    <button onclick="controlBulb('b')" class="clay-button py-4 px-6 text-center font-medium" id="bulbBtnb">
+                        <i class="bi bi-lightbulb text-lg mr-2"></i>Turn Off
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables to track the state
+        let connected = false;
+        let device;
+        let characteristic;
+        let fanStatus = 'f';  // Default: Off
+        let bulbStatus = 'b'; // Default: Off
+
+        // Add ripple effect to buttons
+        document.querySelectorAll('.clay-button').forEach(button => {
+            button.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const ripple = document.createElement('span');
+                ripple.classList.add('clay-button-ripple');
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+
+                this.appendChild(ripple);
+
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Function to show the selected screen
+        function showScreen(screenId) {
+            document.querySelectorAll('#screens > div').forEach(screen => {
+                screen.classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        // Function to toggle Bluetooth connection
+        async function toggleConnection() {
+            if (!connected) {
+                try {
+                    // Request blutooth device with serial port service
+                    device = await navigator.bluetooth.requestDevice({
+                        filters: [{ services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] }]
+                    });
+                    
+                    console.log('Device selected:', device.name);
+                    
+                    // Connect to the device
+                    const server = await device.gatt.connect();
+                    console.log('Connected to GATT server');
+                    
+                    // Get the service
+                    const service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+                    console.log('Got service');
+                    
+                    // Get the characteristic
+                    characteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+                    console.log('Got characteristic');
+                    
+                    connected = true;
+                    updateConnectionUI(true);
+                    
+                    device.addEventListener('gattserverdisconnected', onDisconnected);
+                } catch (error) {
+                    console.error('Bluetooth connection error:', error);
+                    alert('Bluetooth connection failed: ' + error.message);
+                    connected = false;
+                    updateConnectionUI(false);
+                }
+            } else {
+                // Disconnect
+                if (device && device.gatt.connected) {
+                    device.gatt.disconnect();
+                }
+                connected = false;
+                updateConnectionUI(false);
+            }
+        }
+
+        // Function to handle device disconnection
+        function onDisconnected() {
+            console.log('Device disconnected');
+            connected = false;
+            updateConnectionUI(false);
+        }
+
+        // Function to update the UI based on connection status
+        function updateConnectionUI(isConnected) {
+            const statusDot = document.getElementById('connectionDot');
+            const statusText = document.getElementById('connectionStatus');
+            const connectBtn = document.getElementById('connectBtn');
+            
+            if (isConnected) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+                connectBtn.innerHTML = '<i class="bi bi-bluetooth text-xl"></i><span>Disconnect Device</span>';
+                connectBtn.classList.add('text-red-600');
+                connectBtn.classList.remove('text-blue-600');
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Disconnected';
+                connectBtn.innerHTML = '<i class="bi bi-bluetooth text-xl"></i><span>Connect Bluetooth Device</span>';
+                connectBtn.classList.add('text-blue-600');
+                connectBtn.classList.remove('text-red-600');
+            }
+        }
+
+        // Function to send command to the HC-05 module
+        async function sendCommand(command) {
+            if (!connected || !characteristic) {
+                alert('Please connect to the Bluetooth device first');
+                showScreen('homeScreen');
+                return false;
+            }
+
+            try {
+                // Convert the command to a byte array
+                const encoder = new TextEncoder();
+                const data = encoder.encode(command);
+                
+                // Write to the characteristic
+                await characteristic.writeValue(data);
+                console.log('Command sent:', command);
+                return true;
+            } catch (error) {
+                console.error('Error sending command:', error);
+                alert('Failed to send command: ' + error.message);
+                return false;
+            }
+        }
+
+        // Function to control fan
+        async function controlFan(command) {
+            if (await sendCommand(command)) {
+                // Reset all fan buttons
+                document.querySelectorAll('#fanScreen button').forEach(btn => {
+                    btn.classList.remove('active-button');
+                });
+
+                // Update the UI based on the command
+                const fanIcon = document.getElementById('fanIcon');
+                fanIcon.classList.remove('fan-rotating', 'fan-speed-1', 'fan-speed-2', 'fan-speed-3', 'fan-speed-F');
+
+                if (command !== 'f') {
+                    // Add active class to the pressed button
+                    document.getElementById(`fanBtn${command}`).classList.add('active-button');
+                    
+                    // Start fan animation
+                    fanIcon.classList.add('fan-rotating', `fan-speed-${command}`);
+                } else {
+                    document.getElementById('fanBtnf').classList.add('active-button');
+                }
+
+                fanStatus = command;
+            }
+        }
+
+        // Function to control bulb
+        async function controlBulb(command) {
+            if (await sendCommand(command)) {
+                // Reset all bulb buttons
+                document.querySelectorAll('#bulbScreen button').forEach(btn => {
+                    btn.classList.remove('active-button');
+                });
+
+                // Update the UI based on the command
+                const bulbIcon = document.getElementById('bulbIcon');
+                
+                if (command === 'B') {
+                    document.getElementById('bulbBtnB').classList.add('active-button');
+                    bulbIcon.classList.add('bulb-on');
+                } else {
+                    document.getElementById('bulbBtnb').classList.add('active-button');
+                    bulbIcon.classList.remove('bulb-on');
+                }
+
+                bulbStatus = command;
+            }
+        }
+        
+        // Initialize UI status on page load
+        window.addEventListener('load', () => {
+            updateConnectionUI(false);
+        });
+    </script>
+<script>document.body.addEventListener('wheel', e => { if (!e.ctrlKey) return; e.preventDefault(); return }, { passive: false })</script>
+	</body>
+</html>
